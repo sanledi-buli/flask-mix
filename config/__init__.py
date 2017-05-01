@@ -1,6 +1,7 @@
 import yaml
 
 with open('config/application.yaml', 'r') as f:
-    app_config = yaml.load(f)
+    config = yaml.load(f)
 
-config_db = app_config['database']
+config_db = config['database']
+config_app = config['application']

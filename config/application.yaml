@@ -4,3 +4,6 @@ database:
   db_username: "flask_mix"
   db_password: "flask_mix"
   db_name: "flask_mix"
+
+application:
+  secret_key: "q\xab}\xfb\xcc\xd7B\xb3\x8a\xbe\xe4\xed\xb0\xb0\xcd2\x87=1\xc8\xd6b.r"
