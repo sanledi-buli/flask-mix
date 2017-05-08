@@ -8,6 +8,21 @@ import jwt
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 
+class Validator(object):
+
+    @staticmethod
+    def verify_require(request_value):
+        if request_value is not None and request_value.strip() != '':
+            return True
+        return False
+
+    @staticmethod
+    def verify_unique(obj, request_value):
+        res = db.session.query(func.count(obj).label('count')).filter(obj == request_value)
+        if res[0].count == 0:
+            return True
+        return False
+
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -61,14 +76,33 @@ class User(db.Model):
 
     @staticmethod
     def create_from_json(json):
-        if json is None:
-            return { 'body' : { 'message': 'Missing required parameters.' }, 'code' : 400 }
-        if json['name'] is None or json['name'].strip() == '':
-            return { 'body' : { 'message': 'Missing required parameter name.' }, 'code' : 400 }
-        if json['email'] is None or json['email'].strip() == '':
-            return { 'body' : { 'message': 'Missing required parameter email.' }, 'code': 400 }
-        if User.email_already_exists(json['email']):
-            return { 'body' : { 'message': 'Email already exists.' }, 'code': 400 }
+        json_respons = {'body': None, 'code': None}
+        if json is None or type(json) is not dict:
+            json_respons['body'] = const.res_require_template
+            json_respons['code'] = 400
+            return json_respons
+
+        if not Validator.verify_require(json['name']):
+            json_respons['body'] = const.res_require_template + 'name'
+            json_respons['code'] = 400
+            return json_respons
+
+        if not Validator.verify_require(json['email']):
+            json_respons['body'] = const.res_require_template + 'email'
+            json_respons['code'] = 400
+            return json_respons
+
+        if not Validator.verify_require(json['password']):
+            json_respons['body'] = const.res_require_template + 'password'
+            json_respons['code'] = 400
+            return json_respons
+
+        if not Validator.verify_unique(User.email, json['email']):
+            json_respons['body'] = 'Email' + const.res_exists_template
+            json_respons['code'] = 400
+            return json_respons
+
+
         user = User(
             name=json['name'],
             email=json['email'],
